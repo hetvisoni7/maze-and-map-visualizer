@@ -1,0 +1,535 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Pathfinder — Algorithm Visualizer</title>
+    <link rel="stylesheet" href="{% static 'css/maze.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tour.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="brand">
+            <div class="brand-icon"><i class="fas fa-brain"></i></div>
+            <span class="brand-name">Maze<span class="brand-accent">Finder</span></span>
+        </div>
+    </div>
+
+    <!-- Algorithm Category Switcher -->
+    <div class="topbar-center">
+        <div class="category-switcher">
+            <!-- Uninformed -->
+            <div class="cat-group" id="cat-uninformed">
+                <button class="cat-label active" data-cat="uninformed">
+                    <i class="fas fa-eye-slash"></i> Blind Search
+                    <i class="fas fa-chevron-down cat-caret"></i>
+                </button>
+                <div class="cat-dropdown">
+                    <button class="cat-algo active" data-algo="dfs">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Depth-First Search</span>
+                        <span class="algo-abbr">DFS</span>
+                    </button>
+                    <button class="cat-algo" data-algo="bfs">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                        <span>Breadth-First Search</span>
+                        <span class="algo-abbr">BFS</span>
+                    </button>
+                    <button class="cat-algo" data-algo="dbdfs">
+                        <i class="fas fa-layer-group"></i>
+                        <span>DB-DFS</span>
+                        <span class="algo-abbr">DB</span>
+                    </button>
+                    <button class="cat-algo" data-algo="dfid">
+                        <i class="fas fa-search-plus"></i>
+                        <span>DFID</span>
+                        <span class="algo-abbr">ID</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cat-divider"></div>
+
+            <!-- Heuristic -->
+            <div class="cat-group" id="cat-heuristic">
+                <button class="cat-label" data-cat="heuristic">
+                    <i class="fas fa-magic"></i> Heuristic
+                    <i class="fas fa-chevron-down cat-caret"></i>
+                </button>
+                <div class="cat-dropdown">
+                    <button class="cat-algo" data-algo="hillclimbing">
+                        <i class="fas fa-mountain"></i>
+                        <span>Hill Climbing</span>
+                        <span class="algo-abbr">HC</span>
+                    </button>
+                    <button class="cat-algo" data-algo="tabu">
+                        <i class="fas fa-ban"></i>
+                        <span>Tabu Search</span>
+                        <span class="algo-abbr">TS</span>
+                    </button>
+                    <button class="cat-algo" data-algo="ihc">
+                        <i class="fas fa-redo"></i>
+                        <span>Iterated Hill Climbing</span>
+                        <span class="algo-abbr">IHC</span>
+                    </button>
+                    <button class="cat-algo" data-algo="beam">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Beam Search</span>
+                        <span class="algo-abbr">BS</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cat-divider"></div>
+
+            <!-- Stochastic Search -->
+            <div class="cat-group" id="cat-stochastic">
+                <button class="cat-label">
+                    <i class="fas fa-dice"></i>
+                    <span>Stochastic Search</span>
+                    <i class="fas fa-caret-down cat-caret"></i>
+                </button>
+                <div class="cat-dropdown">
+                    <button class="cat-algo" data-algo="randomwalk">
+                        <i class="fas fa-walking"></i>
+                        <span>Random Walk</span>
+                        <span class="algo-abbr">RW</span>
+                    </button>
+                    <button class="cat-algo" data-algo="shc">
+                        <i class="fas fa-dice-d20"></i>
+                        <span>Stochastic Hill Climbing</span>
+                        <span class="algo-abbr">SHC</span>
+                    </button>
+                    <button class="cat-algo" data-algo="sa">
+                        <i class="fas fa-fire-alt"></i>
+                        <span>Simulated Annealing</span>
+                        <span class="algo-abbr">SA</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active algorithm pill -->
+        <div class="active-algo-pill" id="active-algo-pill">
+            <i class="fas fa-sitemap"></i>
+            <span id="active-algo-name">DFS</span>
+            <span class="active-algo-cat" id="active-algo-cat">Blind Search</span>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <button class="tb-btn" id="theme-toggle" title="Toggle Theme"><i class="fas fa-sun"></i></button>
+        <button class="tb-btn" id="tour-btn" title="Interactive Tour"><i class="fas fa-route"></i> Tour</button>
+        <button class="tb-btn" id="reset-btn"><i class="fas fa-undo"></i> Reset</button>
+        <button class="tb-btn" id="help-btn"><i class="fas fa-question-circle"></i> Help</button>
+        <a href="/maze_home" class="tb-btn tb-btn--ghost" title="Back to Selection"><i class="fas fa-arrow-left"></i></a>
+    </div>
+</header>
+
+<!-- ═══ APP LAYOUT ═══ -->
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+
+            <!-- PLAYBACK -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-play-circle"></i><span>Playback</span></div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <label class="field-label">Speed <span class="field-badge" id="speed-label">Medium</span></label>
+                        <div class="slider-wrap">
+                            <input type="range" id="speed-slider" min="1" max="100" value="50" class="slider">
+                            <div class="slider-ticks"><span>Slow</span><span>Med</span><span>Fast</span></div>
+                        </div>
+                    </div>
+                    <div class="playback-btns">
+                        <button class="btn btn--accent btn--full btn--lg" id="start-btn">
+                            <i class="fas fa-play"></i><span>Start Visualization</span>
+                        </button>
+                        <div class="playback-row">
+                            <button class="btn btn--secondary" id="pause-btn" disabled><i class="fas fa-pause"></i> Pause</button>
+                            <button class="btn btn--secondary" id="step-btn" disabled><i class="fas fa-step-forward"></i> Step</button>
+                        </div>
+                    </div>
+                    <div class="status-pill" id="status-indicator">
+                        <span class="status-dot status-dot--idle"></span><span>Ready to start</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAZE SETUP -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-th"></i><span>Maze Setup</span></div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <label class="field-label">Grid Size <span class="field-badge" id="grid-size-label">15 × 15</span></label>
+                        <div class="slider-wrap">
+                            <input type="range" id="grid-size" min="5" max="30" value="15" class="slider">
+                            <div class="slider-ticks"><span>5</span><span>15</span><span>30</span></div>
+                        </div>
+                        <p class="field-hint"><i class="fas fa-bolt"></i> Updates maze live as you slide</p>
+                    </div>
+                    <div class="field-row">
+                        <label class="field-label">Wall Density <span class="field-badge" id="density-label">20%</span></label>
+                        <div class="slider-wrap">
+                            <input type="range" id="obstacle-density" min="0" max="50" value="20" class="slider">
+                            <div class="slider-ticks"><span>0%</span><span>25%</span><span>50%</span></div>
+                        </div>
+                    </div>
+                    <!-- DB-DFS Depth Limit (shown only for DB-DFS) -->
+                    <div class="field-row" id="depth-limit-row" style="display:none">
+                        <label class="field-label" for="depth-limit">Depth Limit <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Max Search Depth</span></label>
+                        <input type="number" id="depth-limit" min="1" max="1000" value="10" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+
+                    <!-- Heuristic Selection (shown for Heuristic algos) -->
+                    <div class="field-row" id="heuristic-select-row" style="display:none">
+                        <label class="field-label" for="heuristic-type">Distance Heuristic <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Math Calculation</span></label>
+                        <select id="heuristic-type" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--ui); cursor: pointer;">
+                            <option value="manhattan">Manhattan Distance</option>
+                            <option value="euclidean">Euclidean Distance</option>
+                        </select>
+                    </div>
+                    <!-- Tabu tenure (shown only for Tabu) -->
+                    <div class="field-row" id="tabu-tenure-row" style="display:none">
+                        <label class="field-label" for="tabu-tenure">Tabu Tenure <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Memory Size</span></label>
+                        <input type="number" id="tabu-tenure" min="1" max="100" value="5" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+                    <!-- Beam width (shown only for Beam Search) -->
+                    <div class="field-row" id="beam-width-row" style="display:none">
+                        <label class="field-label" for="beam-width">Beam Width (b) <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Candidates per level</span></label>
+                        <input type="number" id="beam-width" min="1" max="100" value="2" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+                    <!-- IHC Number of Iterations / Random Walk Steps / SHC / SA Epochs -->
+                    <div class="field-row" id="ihc-restarts-row" style="display:none">
+                        <label class="field-label" for="ihc-restarts">
+                            Number of Iterations / Steps / Epochs
+                            <span class="field-hint" id="ihc-hint" style="padding: 2px 6px; font-size: 0.65rem;">Algorithm Repeat Count</span>
+                        </label>
+                        <input type="number" id="ihc-restarts" min="1" max="1000" value="100" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+                    <!-- SA Cycles per Epoch -->
+                    <div class="field-row" id="sa-cycles-row" style="display:none">
+                        <label class="field-label" for="sa-cycles">
+                            Cycles per Epoch
+                            <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Steps at each Temp level</span>
+                        </label>
+                        <input type="number" id="sa-cycles" min="1" max="500" value="50" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+                    <!-- Temperature (T) for SHC / Simulated Annealing -->
+                    <div class="field-row" id="temperature-row" style="display:none">
+                        <label class="field-label" for="temperature">
+                            Initial Temperature (T)
+                            <span class="field-hint" style="padding: 2px 6px; font-size: 0.65rem;">Exploration "Heat"</span>
+                        </label>
+                        <input type="number" id="temperature" min="1" max="500" value="100" 
+                               style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--mono);">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn--primary btn--full" id="generate-maze"><i class="fas fa-sync-alt"></i> Generate Maze</button>
+                        <button class="btn btn--danger btn--full" id="clear-obstacles"><i class="fas fa-eraser"></i> Clear Walls</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DRAWING TOOLS -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-pencil-alt"></i><span>Drawing Tools</span></div>
+                <div class="card-body">
+                    <div class="tool-grid">
+                        <button class="tool-card" id="set-start"><div class="tool-icon tool-icon--start"><i class="fas fa-play"></i></div><span>Start</span></button>
+                        <button class="tool-card" id="set-end"><div class="tool-icon tool-icon--end"><i class="fas fa-flag-checkered"></i></div><span>End</span></button>
+                        <button class="tool-card active" id="set-wall"><div class="tool-icon tool-icon--wall"><i class="fas fa-square"></i></div><span>Wall</span></button>
+                        <button class="tool-card" id="set-erase"><div class="tool-icon tool-icon--erase"><i class="fas fa-eraser"></i></div><span>Erase</span></button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="lc lc--start"></div><span>Start</span></div>
+                        <div class="legend-item"><div class="lc lc--end"></div><span>End</span></div>
+                        <div class="legend-item"><div class="lc lc--path"></div><span>Path</span></div>
+                        <div class="legend-item"><div class="lc lc--visited"></div><span>States Visited</span></div>
+                        <div class="legend-item"><div class="lc lc--wall"></div><span>Wall</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALGO INFO -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-info-circle"></i><span>Algorithm Info</span></div>
+                <div class="card-body" id="algorithm-info-box">
+                    <h4 class="algo-name"><i class="fas fa-sitemap"></i> Depth-First Search</h4>
+                    <p class="algo-desc">Explores as far as possible along each branch before backtracking. Uses a <strong>stack</strong>.</p>
+                    <div class="complexity-row">
+                        <div class="complexity-chip"><span class="cc-label">Time</span><span class="cc-val">O(V+E)</span></div>
+                        <div class="complexity-chip"><span class="cc-label">Space</span><span class="cc-val">O(V)</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="main-area">
+        <!-- STATS ROW -->
+        <div class="stats-row">
+            <div class="stat-chip"><i class="fas fa-crosshairs"></i><div><div class="sc-val" id="nodes-visited">0</div><div class="sc-label">States Visited</div></div></div>
+            <div class="stat-chip"><i class="fas fa-route"></i><div><div class="sc-val" id="path-length">0</div><div class="sc-label">Path</div></div></div>
+            <div class="stat-chip"><i class="fas fa-clock"></i><div><div class="sc-val" id="execution-time">0</div><div class="sc-label">ms</div></div></div>
+            <div class="coords-display">
+                <span class="coord-chunk"><span class="coord-lbl">S:</span><span class="coord-val" id="start-coords">(0,0)</span></span>
+                <span class="coord-chunk"><span class="coord-lbl">E:</span><span class="coord-val" id="end-coords">(14,14)</span></span>
+                <span class="coord-chunk"><span class="coord-lbl">↑</span><span class="coord-val" id="current-coords">—</span></span>
+            </div>
+        </div>
+
+        <!-- SEARCH STATUS OVERLAY (DFID Only) -->
+        <div class="search-status-overlay" id="search-status-overlay" style="display: none;">
+            <!-- DFID Group -->
+            <div class="sso-chip sso-group-dfid" id="sso-bound-chip">
+                <i class="fas fa-layer-group"></i>
+                <span class="sso-lbl">Bound:</span>
+                <span class="sso-val" id="sso-bound">0</span>
+            </div>
+            <button class="sso-chip sso-chip--btn sso-group-dfid" id="dfid-history-btn" title="View Iteration History">
+                <i class="fas fa-history"></i>
+                <span class="sso-lbl">Iteration:</span>
+                <span class="sso-val" id="sso-iteration">1</span>
+            </button>
+
+            <!-- Heuristic Group -->
+            <div class="sso-chip sso-group-heuristic" id="sso-best-node-chip">
+                <i class="fas fa-star" style="color: #ffca28;"></i>
+                <span class="sso-lbl">Best Node:</span>
+                <span class="sso-val" id="sso-best-node">—</span>
+            </div>
+            <div class="sso-chip sso-group-heuristic" id="sso-h-value-chip">
+                <i class="fas fa-bullseye" style="color: #4db6ac;"></i>
+                <span class="sso-lbl">Best H:</span>
+                <span class="sso-val" id="sso-best-h">—</span>
+            </div>
+        </div>
+
+        <!-- MAZE GRID -->
+        <div class="maze-wrapper">
+            <div class="maze-grid" id="maze-grid"></div>
+        </div>
+
+        <!-- BOTTOM TABBED PANEL -->
+        <div class="bottom-panel">
+            <div class="panel-tabs">
+                <button class="ptab active" data-panel="steps"><i class="fas fa-list-ol"></i> Steps</button>
+                <button class="ptab" data-panel="ds"><i class="fas fa-layer-group"></i> Data Structures</button>
+                <button class="ptab" data-panel="pseudo"><i class="fas fa-code"></i> Pseudocode</button>
+                <button class="ptab" data-panel="path"><i class="fas fa-route"></i> Path Info</button>
+            </div>
+
+            <div class="panel-content active" id="panel-steps">
+                <div class="steps-feed" id="algorithm-steps">
+                    <div class="step-item initial-step">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                            <div class="step-title">Initialize OPEN and CLOSED</div>
+                            <div class="step-code">OPEN ← (S, null) | CLOSED ← empty list</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-ds">
+                <div class="ds-grid">
+                    <div class="ds-box">
+                        <div class="ds-header"><i class="fas fa-box-open"></i><span id="open-label">OPEN Stack</span><span class="ds-count" id="open-count">0</span></div>
+                        <div class="ds-body" id="open-stack"><div class="empty-ds">Stack is empty</div></div>
+                    </div>
+                    <div class="ds-box">
+                        <div class="ds-header"><i class="fas fa-archive"></i><span>CLOSED List</span><span class="ds-count" id="closed-count">0</span></div>
+                        <div class="ds-body" id="closed-list"><div class="empty-ds">List is empty</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-pseudo">
+                <div class="pseudocode" id="pseudocode-box">
+                    <div class="code-line"><span class="ln">1</span><code>function DFS(S):</code></div>
+                    <div class="code-line"><span class="ln">2</span><code>&nbsp;&nbsp;OPEN ← [(S, null)]</code></div>
+                    <div class="code-line"><span class="ln">3</span><code>&nbsp;&nbsp;CLOSED ← []</code></div>
+                    <div class="code-line"><span class="ln">4</span><code>&nbsp;&nbsp;while OPEN is not empty:</code></div>
+                    <div class="code-line"><span class="ln">5</span><code>&nbsp;&nbsp;&nbsp;&nbsp;(N, parent) ← pop OPEN</code></div>
+                    <div class="code-line"><span class="ln">6</span><code>&nbsp;&nbsp;&nbsp;&nbsp;if GoalTest(N): return ReconstructPath(N, CLOSED)</code></div>
+                    <div class="code-line"><span class="ln">7</span><code>&nbsp;&nbsp;&nbsp;&nbsp;CLOSED ← [(N, parent)] + CLOSED</code></div>
+                    <div class="code-line"><span class="ln">8</span><code>&nbsp;&nbsp;&nbsp;&nbsp;OPEN ← children(N) + OPEN</code></div>
+                    <div class="code-line"><span class="ln">9</span><code>&nbsp;&nbsp;return []  // No path found</code></div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-path">
+                <div class="path-info-grid">
+                    <div class="pi-section">
+                        <div class="pi-row"><span class="pi-lbl">Status:</span><span class="pi-val" id="path-status">Not Started</span></div>
+                        <div class="pi-row"><span class="pi-lbl">Path Found:</span><span class="pi-val" id="path-found">—</span></div>
+                        <div class="pi-row"><span class="pi-lbl">Total Steps:</span><span class="pi-val" id="total-steps">0</span></div>
+                    </div>
+                    <div class="pi-coords">
+                        <h4>Final Path Coordinates</h4>
+                        <div class="coords-list" id="path-coordinates">
+                            <div class="empty-path">Run visualization first</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-backdrop" id="help-modal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3><i class="fas fa-question-circle"></i> How to Use</h3>
+            <button class="modal-close" id="close-help">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="help-col">
+                <h4><i class="fas fa-eye-slash"></i> Blind Search</h4>
+                <ul>
+                    <li><strong>DFS</strong> — Explores depth-first using a stack. May not find shortest path.</li>
+                    <li><strong>BFS</strong> — Explores breadth-first using a queue. Guarantees shortest path.</li>
+                    <li><strong>DB-DFS</strong> — DFS with a configurable depth limit to avoid infinite loops.</li>
+                </ul>
+            </div>
+            <div class="help-col">
+                <h4><i class="fas fa-magic"></i> Heuristic Search</h4>
+                <ul>
+                    <li><strong>Hill Climbing</strong> — Always moves to the neighbour closest to the goal (Manhattan distance). May get stuck in local optima.</li>
+                    <li><strong>Tabu Search</strong> — Like hill climbing but keeps a tabu list to escape local optima.</li>
+                    <li><strong>Iterated HC</strong> — Restarts hill climbing from random positions to escape local optima.</li>
+                    <li><strong>Beam Search</strong> — Keeps $b$ best candidates at each level to explore multiple paths.</li>
+                </ul>
+            </div>
+            <div class="help-col">
+                <h4><i class="fas fa-dice"></i> Stochastic Search</h4>
+                <ul>
+                    <li><strong>Random Walk</strong> — Moves randomly to explore the maze, keeping track of the best node found.</li>
+                    <li><strong>Stochastic HC</strong> — Decides moves based on probability and temperature (T).</li>
+                    <li><strong>Simulated Annealing</strong> — Uses cycles and epochs with a cooling schedule to refine the search.</li>
+                </ul>
+            </div>
+            <div class="help-col">
+                <h4><i class="fas fa-gamepad"></i> Controls</h4>
+                <ul>
+                    <li>Select category then algorithm from the top bar</li>
+                    <li>Click/drag cells to draw walls</li>
+                    <li>Change Grid Size then click <em>Generate</em></li>
+                    <li>Use <em>Start → Pause → Step</em> to control playback</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/maze.js' %}"></script>
+<script src="{% static 'js/dfs.js' %}"></script>
+<script src="{% static 'js/bfs.js' %}"></script>
+<script src="{% static 'js/db_dfs.js' %}"></script>
+<script src="{% static 'js/hill_climbing.js' %}"></script>
+<script src="{% static 'js/tabu_search.js' %}"></script>
+<script src="{% static 'js/iterated_hill_climbing.js' %}"></script>
+<script src="{% static 'js/random_walk.js' %}"></script>
+<script src="{% static 'js/stochastic_hill_climbing.js' %}"></script>
+<script src="{% static 'js/simulated_annealing.js' %}"></script>
+<script src="{% static 'js/beam_search.js' %}"></script>
+<script src="{% static 'js/dfid.js' %}"></script>
+    <!-- DFID HISTORY MODAL -->
+    <div class="modal-backdrop" id="history-modal">
+        <div class="modal">
+            <div class="modal-head">
+                <h3><i class="fas fa-history"></i> Iteration History (DFID)</h3>
+                <button class="modal-close" id="close-history">&times;</button>
+            </div>
+            <div class="modal-body history-modal-body">
+                <div class="history-list" id="dfid-history-list">
+                    <!-- History items will be injected here -->
+                    <div class="empty-history">No history recorded yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Tour Script -->
+    <script src="{% static 'js/tour.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = [
+                {
+                    element: '.category-switcher',
+                    title: 'Choose Algorithm',
+                    body: 'Select from 10+ search algorithms categorized into Blind, Heuristic, and Stochastic search styles.',
+                    position: 'bottom'
+                },
+                {
+                    element: '#theme-toggle',
+                    title: 'Dynamic Theme',
+                    body: 'Toggle between dark and light themes smoothly at any time to customize your visual experience.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.card:nth-of-type(1)',
+                    title: 'Playback Control',
+                    body: 'Control speed, start the visualization animation, pause execution, or step frame-by-frame.',
+                    position: 'right'
+                },
+                {
+                    element: '.card:nth-of-type(2)',
+                    title: 'Grid Configuration',
+                    body: 'Dynamically configure grid size, wall density, or specific mathematical heuristics like Manhattan and Euclidean metrics.',
+                    position: 'right'
+                },
+                {
+                    element: '.card:nth-of-type(3)',
+                    title: 'Interactive Canvas Tools',
+                    body: 'Select a tool to place the Start/End flags, draw custom walls on the canvas, or erase obstacles.',
+                    position: 'right'
+                },
+                {
+                    element: '.stats-row',
+                    title: 'Live Metrics',
+                    body: 'Monitor search progress instantly: count of states visited, current path cost, and computation time.',
+                    position: 'bottom'
+                },
+                {
+                    element: '.bottom-panel',
+                    title: 'Dashboard Insights',
+                    body: 'Trace detailed information including priority queues, active steps, pseudocode execution highlights, and coordinates list.',
+                    position: 'top'
+                }
+            ];
+
+            const tour = new ProductTour('maze-tour', steps);
+            
+            // Auto start for first time
+            setTimeout(() => {
+                tour.start();
+            }, 600);
+
+            // Manual trigger
+            document.getElementById('tour-btn').addEventListener('click', () => {
+                tour.start(true);
+            });
+        });
+    </script>
+</body>
+</html>
+```

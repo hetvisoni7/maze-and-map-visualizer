@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Finder — India Map Visualizer</title>
+    <link rel="stylesheet" href="{% static 'css/map_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tour.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="brand">
+            <div class="brand-icon"><i class="fas fa-map-marked-alt"></i></div>
+            <span class="brand-name">Route<span class="brand-accent">Finder</span></span>
+        </div>
+    </div>
+
+    <!-- Algorithm Switcher -->
+    <div class="topbar-center">
+        <div class="category-switcher">
+            <div class="cat-group" id="cat-mapping">
+                <button class="cat-label active" data-cat="mapping">
+                    <i class="fas fa-route"></i> Mapping Search
+                    <i class="fas fa-chevron-down cat-caret"></i>
+                </button>
+                <div class="cat-dropdown">
+                    <button class="cat-algo active" data-algo="astar">
+                        <i class="fas fa-star"></i>
+                        <span>A* Algorithm</span>
+                        <span class="algo-abbr">A*</span>
+                    </button>
+                    <button class="cat-algo" data-algo="dijkstra">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Dijkstra's Search</span>
+                        <span class="algo-abbr">DJ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active algorithm pill -->
+        <div class="active-algo-pill" id="active-algo-pill">
+            <i class="fas fa-star"></i>
+            <span id="active-algo-name">A* Algorithm</span>
+            <span class="active-algo-cat" id="active-algo-cat">Mapping Search</span>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <button class="tb-btn" id="theme-toggle" title="Toggle Theme"><i class="fas fa-sun"></i></button>
+        <button class="tb-btn" id="tour-btn" title="Interactive Tour"><i class="fas fa-route"></i> Tour</button>
+        <button class="tb-btn" id="reset-btn"><i class="fas fa-undo"></i> Reset</button>
+        <a href="{% url 'global_landing' %}" class="tb-btn tb-btn--ghost" title="Back to Selection"><i class="fas fa-arrow-left"></i></a>
+    </div>
+</header>
+
+<!-- ═══ APP LAYOUT ═══ -->
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+
+            <!-- PLAYBACK -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-play-circle"></i><span>Journey Controls</span></div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <label class="field-label">Speed <span class="field-badge" id="speed-label">Medium</span></label>
+                        <div class="slider-wrap">
+                            <input type="range" id="speed-slider" min="1" max="100" value="50" class="slider">
+                            <div class="slider-ticks"><span>Slow</span><span>Med</span><span>Fast</span></div>
+                        </div>
+                    </div>
+                    <div class="playback-btns">
+                        <button class="btn btn--accent btn--full btn--lg" id="start-btn">
+                            <i class="fas fa-play"></i><span>Start Journey</span>
+                        </button>
+                        <div class="playback-row">
+                            <button class="btn btn--secondary" id="pause-btn" disabled><i class="fas fa-pause"></i> Pause</button>
+                            <button class="btn btn--secondary" id="step-btn" disabled><i class="fas fa-step-forward"></i> Step</button>
+                        </div>
+                    </div>
+                    <div class="status-pill" id="status-indicator">
+                        <span class="status-dot status-dot--idle"></span><span>Ready to navigate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROUTE SETUP -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-map-marker-alt"></i><span>Route Setup</span></div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <label class="field-label">Source State</label>
+                        <select id="start-state" class="map-dropdown" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--ui);">
+                            <!-- Options populated by JS -->
+                        </select>
+                    </div>
+                    <div class="field-row">
+                        <label class="field-label">Destination State</label>
+                        <select id="end-state" class="map-dropdown" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--cyan); font-family: var(--ui);">
+                            <!-- Options populated by JS -->
+                        </select>
+                    </div>
+                    <div class="field-row" style="margin-top: 5px;">
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px;">
+                            <input type="checkbox" id="camera-follow" checked style="accent-color: var(--cyan); width: 16px; height: 16px;">
+                            <label for="camera-follow" style="font-size: 0.75rem; color: var(--muted); cursor: pointer;">Camera Follow Mode</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALGO INFO -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-info-circle"></i><span>Algorithm Insights</span></div>
+                <div class="card-body" id="algorithm-info-box">
+                    <h4 class="algo-name" id="display-title"><i class="fas fa-star"></i> A* Algorithm</h4>
+                    <p class="algo-desc" id="algo-description">A* uses both actual distance traveled $g(n)$ and estimated direct distance to target $h(n)$ to find the shortest path efficiently.</p>
+                    <div class="complexity-row">
+                        <div class="complexity-chip"><span class="cc-label">Time</span><span class="cc-val" id="algo-time">O(E + V log V)</span></div>
+                        <div class="complexity-chip"><span class="cc-label">Space</span><span class="cc-val" id="algo-space">O(V)</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="main-area">
+        <!-- STATS ROW -->
+        <div class="stats-row">
+            <div class="stat-chip"><i class="fas fa-route"></i><div><div class="sc-val" id="stat-distance">0 km</div><div class="sc-label">Distance</div></div></div>
+            <div class="stat-chip"><i class="fas fa-coins"></i><div><div class="sc-val" id="stat-visited">0</div><div class="sc-label">Total Cost</div></div></div>
+            <div class="stat-chip"><i class="fas fa-clock"></i><div><div class="sc-val" id="execution-time">0</div><div class="sc-label">ms</div></div></div>
+            <div class="coords-display">
+                <span class="coord-chunk"><span class="coord-lbl">From:</span><span class="coord-val" id="start-display">—</span></span>
+                <span class="coord-chunk"><span class="coord-lbl">To:</span><span class="coord-val" id="end-display">—</span></span>
+                <span class="coord-chunk"><span class="coord-lbl">↑</span><span class="coord-val" id="current-location">—</span></span>
+            </div>
+        </div>
+
+        <!-- MAP VIEW AREA -->
+        <div class="maze-wrapper" style="padding: 0; overflow: hidden;">
+            <div id="leaflet-map-container" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <!-- BOTTOM TABBED PANEL -->
+        <div class="bottom-panel">
+            <div class="panel-tabs">
+                <button class="ptab active" data-panel="steps"><i class="fas fa-list-ol"></i> Execution Steps</button>
+                <button class="ptab" data-panel="ds"><i class="fas fa-layer-group"></i> Memory State</button>
+                <button class="ptab" data-panel="pseudo"><i class="fas fa-code"></i> Algorithm Logic</button>
+                <button class="ptab" data-panel="perf"><i class="fas fa-chart-bar"></i> Performance Analytics</button>
+            </div>
+
+            <div class="panel-content active" id="panel-steps">
+                <div class="steps-feed" id="algorithm-steps">
+                    <div class="empty-ds">Start visualization to see execution details</div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-ds">
+                <div class="ds-grid">
+                    <div class="ds-box">
+                        <div class="ds-header"><i class="fas fa-box-open"></i><span>Priority Queue (OPEN)</span><span class="ds-count" id="open-count">0</span></div>
+                        <div class="ds-body" id="open-list"><div class="empty-ds">Queue is empty</div></div>
+                    </div>
+                    <div class="ds-box">
+                        <div class="ds-header"><i class="fas fa-archive"></i><span>Visited Set (CLOSED)</span><span class="ds-count" id="closed-count">0</span></div>
+                        <div class="ds-body" id="closed-list"><div class="empty-ds">Set is empty</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-pseudo">
+                <div class="pseudocode" id="pseudocode-display">
+                    <!-- Loaded via JS -->
+                     <div class="empty-ds">Select an algorithm to view its logic</div>
+                </div>
+            </div>
+
+            <div class="panel-content" id="panel-perf">
+                <div class="perf-container">
+                    <div class="perf-header">
+                        <div class="perf-title"><i class="fas fa-balance-scale"></i> Algorithm Comparison</div>
+                        <div class="perf-winner" id="comp-winner-display">Run both algorithms to compare</div>
+                    </div>
+                    
+                    <div class="perf-grid">
+                        <div class="perf-metric">
+                            <div class="pm-header">
+                                <span class="pm-label">States Visited (Space/Exploration)</span>
+                            </div>
+                            <div class="pm-bars">
+                                <div class="pm-row">
+                                    <div class="pm-rlabel">A*</div>
+                                    <div class="pm-bar-track"><div class="pm-bar pm-bar--astar" id="perf-nodes-astar" style="width: 0%"></div></div>
+                                    <div class="pm-val" id="val-nodes-astar">0</div>
+                                </div>
+                                <div class="pm-row">
+                                    <div class="pm-rlabel">Dijkstra</div>
+                                    <div class="pm-bar-track"><div class="pm-bar pm-bar--dijkstra" id="perf-nodes-dijkstra" style="width: 0%"></div></div>
+                                    <div class="pm-val" id="val-nodes-dijkstra">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Execution Time Comparison -->
+                        <div class="perf-metric">
+                            <div class="pm-header">
+                                <span class="pm-label">Execution Time (Speed)</span>
+                            </div>
+                            <div class="pm-bars">
+                                <div class="pm-row">
+                                    <div class="pm-rlabel">A*</div>
+                                    <div class="pm-bar-track"><div class="pm-bar pm-bar--astar" id="perf-time-astar" style="width: 0%"></div></div>
+                                    <div class="pm-val" id="val-time-astar">0ms</div>
+                                </div>
+                                <div class="pm-row">
+                                    <div class="pm-rlabel">Dijkstra</div>
+                                    <div class="pm-bar-track"><div class="pm-bar pm-bar--dijkstra" id="perf-time-dijkstra" style="width: 0%"></div></div>
+                                    <div class="pm-val" id="val-time-dijkstra">0ms</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="{% static 'js/map_data.js' %}"></script>
+<script src="{% static 'js/astar_map.js' %}"></script>
+<script src="{% static 'js/dijkstra_map.js' %}"></script>
+<script src="{% static 'js/map_visualizer.js' %}"></script>
+
+<!-- Onboarding Tour Script -->
+<script src="{% static 'js/tour.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const steps = [
+            {
+                element: '.category-switcher',
+                title: 'Choose Algorithm',
+                body: 'Select between A* Search and Dijkstra\'s Search algorithms to find the shortest routing paths.',
+                position: 'bottom'
+            },
+            {
+                element: '#theme-toggle',
+                title: 'Dynamic Theme',
+                body: 'Toggle between dark and light themes dynamically. This updates all menus and the underlying Leaflet map tiles instantly!',
+                position: 'bottom'
+            },
+            {
+                element: '.card:nth-of-type(1)',
+                title: 'Playback Speed',
+                body: 'Configure vehicle travel speed, kick off the visualization, or pause execution live.',
+                position: 'right'
+            },
+            {
+                element: '.card:nth-of-type(2)',
+                title: 'Route Setup',
+                body: 'Choose the Source and Destination states in India. You can also toggle "Camera Follow Mode" to track the vehicle.',
+                position: 'right'
+            },
+            {
+                element: '.card:nth-of-type(3)',
+                title: 'Complexity Insights',
+                body: 'Read details about the selected search algorithm, including its Big-O Time and Space complexity bounds.',
+                position: 'right'
+            },
+            {
+                element: '#leaflet-map-container',
+                title: 'Interactive Leaflet Map',
+                body: 'Click, drag, zoom in and out, and view state capital nodes connected by roads representing the routing graph of India.',
+                position: 'top'
+            },
+            {
+                element: '.bottom-panel',
+                title: 'Detailed Dashboard',
+                body: 'Watch execution steps feed, Priority Queue (OPEN) list, pseudocode steps, and detailed side-by-side performance speed bar charts.',
+                position: 'top'
+            }
+        ];
+
+        const tour = new ProductTour('map-tour', steps);
+        
+        // Auto start for first time
+        setTimeout(() => {
+            tour.start();
+        }, 800);
+
+        // Manual trigger
+        document.getElementById('tour-btn').addEventListener('click', () => {
+            tour.start(true);
+        });
+    });
+</script>
+
+</body>
+</html>

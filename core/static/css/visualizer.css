@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #05060f;
+    color: white;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.header {
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    background: linear-gradient(90deg, #00aaff, #7f00ff);
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    display: flex;
+}
+
+/* MAZE */
+.maze-container {
+    flex: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#maze {
+    display: grid;
+    grid-template-columns: repeat(20, 30px);
+    gap: 2px;
+}
+
+/* CELLS */
+.cell {
+    width: 30px;
+    height: 30px;
+    background: #1b1f2a;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.wall { background: #000; }
+.start { background: #007bff; }
+.goal { background: #ff4444; }
+.visited { background: #ffcc00; }
+.path { background: #00ff88; }
+
+/* CONTROL PANEL */
+.control-panel {
+    flex: 1;
+    padding: 20px;
+    background: #0d1020;
+    border-left: 2px solid #111;
+}
+
+.control-panel h3 {
+    margin-bottom: 15px;
+}
+
+select, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #1b1f2a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+button {
+    background: linear-gradient(90deg, #00aaff, #7f00ff);
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.legend {
+    margin-top: 30px;
+}
+
+.legend div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend .cell {
+    margin-right: 10px;
+}

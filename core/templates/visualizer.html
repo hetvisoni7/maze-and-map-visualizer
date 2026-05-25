@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maze Visualizer</title>
+    <link rel="stylesheet" href="{% static 'css/visualizer.css' %}">
+</head>
+<body>
+
+<div class="header">
+    Maze Algorithm Visualizer
+</div>
+
+<div class="main">
+    <!-- MAZE -->
+    <div class="maze-container">
+        <div id="maze"></div>
+    </div>
+
+    <!-- CONTROL PANEL -->
+    <div class="control-panel">
+        <h3>Controls</h3>
+
+        <label>Algorithm</label>
+        <select id="algorithm">
+            <option value="dfs">Depth First Search (DFS)</option>
+            <!-- BFS, A* later -->
+        </select>
+
+        <button id="startBtn">Start</button>
+
+        <div class="legend">
+            <div><span class="cell start"></span> Start</div>
+            <div><span class="cell goal"></span> Goal</div>
+            <div><span class="cell visited"></span> Visited</div>
+            <div><span class="cell path"></span> Path</div>
+            <div><span class="cell wall"></span> Wall</div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/visualizer.js' %}"></script>
+</body>
+</html>

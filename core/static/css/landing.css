@@ -1,0 +1,169 @@
+/* ================= RESET ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================= BODY ================= */
+body {
+    height: 100vh;
+    background: #02040a;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+}
+
+/* ================= GRADIENT BACKGROUND ================= */
+.gradient-bg {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background:
+        radial-gradient(circle at 20% 30%, #00aaff33, transparent 40%),
+        radial-gradient(circle at 80% 70%, #7f00ff33, transparent 45%),
+        radial-gradient(circle at 50% 50%, #00ffcc22, transparent 50%);
+    animation: gradientMove 20s ease-in-out infinite;
+    z-index: -3;
+}
+
+@keyframes gradientMove {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-12%, -10%); }
+    100% { transform: translate(0, 0); }
+}
+
+/* ================= ANIMATED GRID ================= */
+.grid-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 25s linear infinite;
+    z-index: -2;
+}
+
+@keyframes gridMove {
+    from { background-position: 0 0; }
+    to { background-position: 300px 300px; }
+}
+
+/* ================= PARTICLES ================= */
+.particles::before,
+.particles::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle, #00aaff88 1px, transparent 1px),
+        radial-gradient(circle, #7f00ff88 1px, transparent 1px);
+    background-size: 120px 120px;
+    animation: particleMove 30s linear infinite;
+    opacity: 0.4;
+    z-index: -1;
+}
+
+.particles::after {
+    background-size: 180px 180px;
+    animation-duration: 45s;
+}
+
+@keyframes particleMove {
+    from { transform: translate(0,0); }
+    to { transform: translate(-200px, -200px); }
+}
+
+/* ================= MAIN CONTAINER ================= */
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 2s ease;
+}
+
+/* ================= TITLE ================= */
+.title {
+    font-size: 4.2rem;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #00aaff, #7f00ff, #00ffcc);
+    background-size: 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleFlow 6s linear infinite, glow 2.5s infinite alternate;
+}
+
+@keyframes titleFlow {
+    from { background-position: 0%; }
+    to { background-position: 300%; }
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 12px #00aaff55; }
+    to { text-shadow: 0 0 35px #7f00ffaa; }
+}
+
+/* ================= SUBTITLE ================= */
+.subtitle {
+    margin-top: 20px;
+    font-size: 1.35rem;
+    color: #c2c2c2;
+    animation: slideUp 1.6s ease-out;
+}
+
+/* ================= BUTTON ================= */
+.start-btn {
+    margin-top: 55px;
+    padding: 18px 55px;
+    font-size: 1.2rem;
+    border-radius: 60px;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(135deg, #00aaff, #7f00ff);
+    box-shadow: 0 0 35px #00aaff66;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.start-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 120%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.25),
+        transparent
+    );
+    transition: 0.6s;
+}
+
+.start-btn:hover::before {
+    left: 120%;
+}
+
+.start-btn:hover {
+    transform: scale(1.12);
+    box-shadow: 0 0 60px #7f00ffcc;
+}
+
+/* ================= ENTRANCE ANIMATIONS ================= */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

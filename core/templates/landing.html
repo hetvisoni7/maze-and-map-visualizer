@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maze Algorithm Visualizer</title>
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+</head>
+<body>
+
+<!-- Animated Background Layers -->
+<div class="gradient-bg"></div>
+<div class="grid-bg"></div>
+<div class="particles"></div>
+
+<!-- Main Content -->
+<div class="container">
+    <h1 class="title">Maze Algorithm Visualizer</h1>
+    <p class="subtitle">
+        Visual Exploration of Search & Heuristic Algorithms
+    </p>
+
+    <a href="{% url 'visualizer' %}" class="start-btn">
+        Start Visualization
+    </a>
+</div>
+
+</body>
+</html>
